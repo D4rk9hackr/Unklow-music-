@@ -105,4 +105,9 @@ app/src/main/java/com/vivimusic/music/listentogether/proto/*
 
 # FFTW third-party library build artifacts
 app/src/main/cpp/vibrafp/third_party/fftw-android/
-app/src/main/cpp/vibrafp/third_party/.build-fftw/.github/workflows/
+app/src/main/cpp/vibrafp/third_party/.build-fftw/
+
+# Release keystores (never commit)
+keystore/
+*.keystore
+*.jks
