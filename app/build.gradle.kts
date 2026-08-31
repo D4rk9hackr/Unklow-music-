@@ -17,7 +17,7 @@ plugins {
 }
 
 android {
-    namespace = "com.unklon.app"
+    namespace = "com.music.vivi"
     compileSdk = 37
     ndkVersion = "27.0.12077973"
 
