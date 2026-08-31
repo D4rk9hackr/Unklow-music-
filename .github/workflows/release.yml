@@ -53,9 +53,9 @@ jobs:
           KEYSTORE: ${{ secrets.KEYSTORE }}
         run: |
           if [ -n "$KEYSTORE" ]; then
-            mkdir -p keystore
-            echo "$KEYSTORE" | base64 -d > keystore/release.keystore
-            echo "Keystore restored to keystore/release.keystore"
+            mkdir -p app/keystore
+            echo "$KEYSTORE" | base64 -d > app/keystore/release.keystore
+            echo "Keystore restored to app/keystore/release.keystore"
           else
             echo "::warning::KEYSTORE secret not set; APKs will be unsigned"
           fi
