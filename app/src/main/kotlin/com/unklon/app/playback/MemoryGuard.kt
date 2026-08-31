@@ -2,10 +2,8 @@ package com.unklon.app.playback
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.os.Process
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
@@ -13,7 +11,7 @@ class MemoryGuard private constructor(context: Context) {
 
     private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     private val handler = Handler(Looper.getMainLooper())
-    private val serviceRef = WeakReference<Any>(null)
+    private var serviceRef: WeakReference<Any> = WeakReference(null)
     private var monitoring = false
     private var trimLevel = TRIM_MEMORY_RUNNING_LOW
 
@@ -47,7 +45,7 @@ class MemoryGuard private constructor(context: Context) {
     fun onTrimMemory(level: Int) {
         trimLevel = level
         if (level >= TRIM_MEMORY_RUNNING_CRITICAL) {
-            handler.post { performClean-aggressive() }
+            handler.post { performCleanAggressive() }
         }
     }
 
@@ -59,19 +57,19 @@ class MemoryGuard private constructor(context: Context) {
 
         if (usagePercent > MEMORY_CRITICAL_THRESHOLD) {
             Timber.w("Memory critical: ${usedMB}MB/${maxMB}MB ($usagePercent%)")
-            performClean-aggressive()
+            performCleanAggressive()
         } else if (usagePercent > MEMORY_WARNING_THRESHOLD) {
             Timber.d("Memory elevated: ${usedMB}MB/${maxMB}MB ($usagePercent%)")
-            performClean-light()
+            performCleanLight()
         }
     }
 
-    private fun performClean-light() {
+    private fun performCleanLight() {
         Runtime.getRuntime().gc()
         Timber.d("Light memory clean performed")
     }
 
-    private fun performClean-aggressive() {
+    private fun performCleanAggressive() {
         val runtime = Runtime.getRuntime()
         val before = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
 

@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.media3.common.audio.SonicAudioProcessor
-import com.music.vivi.extensions.dataStore
+import com.music.vivi.utils.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,7 +22,7 @@ class PitchSpeedController private constructor(context: Context) {
     private val dataStore: DataStore<Preferences> = context.dataStore
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val sonicProcessor = SonicAudioProcessor()
+    private var currentProcessor: SonicAudioProcessor? = null
 
     private val _speed = MutableStateFlow(1.0f)
     val speed: StateFlow<Float> = _speed.asStateFlow()
@@ -34,10 +34,19 @@ class PitchSpeedController private constructor(context: Context) {
         restoreValues()
     }
 
+    /** Factory for the audio pipeline: hands out a processor pre-loaded with the saved settings. */
+    fun provideProcessor(): SonicAudioProcessor {
+        val processor = SonicAudioProcessor().apply {
+            setSpeed(_speed.value, _pitch.value)
+        }
+        currentProcessor = processor
+        return processor
+    }
+
     fun setSpeed(newSpeed: Float) {
         val clamped = newSpeed.coerceIn(MIN_VALUE, MAX_VALUE)
         _speed.value = clamped
-        sonicProcessor.setSpeed(clamped, _pitch.value)
+        currentProcessor?.setSpeed(clamped, _pitch.value)
         persist()
         Timber.d("Speed set to $clamped")
     }
@@ -45,7 +54,7 @@ class PitchSpeedController private constructor(context: Context) {
     fun setPitch(newPitch: Float) {
         val clamped = newPitch.coerceIn(MIN_VALUE, MAX_VALUE)
         _pitch.value = clamped
-        sonicProcessor.setSpeed(_speed.value, clamped)
+        currentProcessor?.setSpeed(_speed.value, clamped)
         persist()
         Timber.d("Pitch set to $clamped")
     }
@@ -53,7 +62,7 @@ class PitchSpeedController private constructor(context: Context) {
     fun reset() {
         _speed.value = 1.0f
         _pitch.value = 1.0f
-        sonicProcessor.setSpeed(1.0f, 1.0f)
+        currentProcessor?.setSpeed(1.0f, 1.0f)
         persist()
         Timber.d("Pitch/Speed reset to defaults")
     }
@@ -74,7 +83,7 @@ class PitchSpeedController private constructor(context: Context) {
             val savedPitch = prefs[PITCH_KEY] ?: 1.0f
             _speed.value = savedSpeed
             _pitch.value = savedPitch
-            sonicProcessor.setSpeed(savedSpeed, savedPitch)
+            currentProcessor?.setSpeed(savedSpeed, savedPitch)
             Timber.d("Restored pitch=$savedPitch speed=$savedSpeed")
         }
     }

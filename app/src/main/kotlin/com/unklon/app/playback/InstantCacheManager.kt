@@ -1,10 +1,14 @@
 package com.unklon.app.playback
 
 import android.content.Context
+import android.net.ConnectivityManager
+import androidx.core.content.getSystemService
 import androidx.media3.datasource.cache.SimpleCache
+import com.music.vivi.constants.AudioQuality
+import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.db.MusicDatabase
-import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.utils.YTPlayerUtils
+import com.music.vivi.utils.enumPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +29,8 @@ constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val cachedSongs = mutableSetOf<String>()
+    private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
+    private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
 
     fun onSongStarted(mediaId: String) {
         if (mediaId in cachedSongs) return
@@ -41,16 +47,20 @@ constructor(
     }
 
     private suspend fun preCacheSong(mediaId: String) {
-        // Check if already fully cached
+        // Check if already fully cached from a previous play-through
         if (isSongCached(mediaId)) {
             markSongAsDownloaded(mediaId)
             return
         }
 
-        // Resolve stream URL (this also caches the URL for future use)
+        // Resolve the stream URL (also caches the URL via songUrlCache for later use)
         try {
-            val playbackData = YTPlayerUtils.playerResponseForPlayback(mediaId).getOrThrow()
-            val streamUrl = playbackData.streamUrl
+            val playbackData = YTPlayerUtils.playerResponseForPlayback(
+                mediaId,
+                audioQuality = audioQuality,
+                connectivityManager = connectivityManager,
+                context = context,
+            ).getOrThrow()
             val contentLength = playbackData.format.contentLength ?: 0L
 
             if (contentLength > 0 && isSongCached(mediaId)) {

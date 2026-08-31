@@ -3067,7 +3067,7 @@ class MusicService :
                             silenceProcessor,
                         ),
                         SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
-                        pitchSpeedController.sonicProcessor,
+                        pitchSpeedController.provideProcessor(),
                     ),
                 ).build()
         }

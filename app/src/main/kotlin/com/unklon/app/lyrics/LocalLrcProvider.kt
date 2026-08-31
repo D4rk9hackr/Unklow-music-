@@ -3,9 +3,6 @@ package com.unklon.app.lyrics
 import android.content.Context
 import android.os.Environment
 import com.music.vivi.lyrics.LyricsProvider
-import com.music.vivi.lyrics.LyricsUtils
-import com.music.vivi.utils.dataStore
-import com.music.vivi.utils.get
 import timber.log.Timber
 import java.io.File
 
