@@ -18,7 +18,7 @@ plugins {
 
 android {
     namespace = "com.unklon.app"
-    compileSdk = 35
+    compileSdk = 37
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
